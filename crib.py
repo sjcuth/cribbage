@@ -1,3 +1,7 @@
+#add y = x[:] to copy arrays
+#x[len(x):] = [5,6,7] to extend arrays
+#x.remove(3) to remove a card
+
 """crib module. Contains classes Card, Hand"""
 class Card:
     """Card class: has properties strRank, strSuit, suitNum, rankNum, value, rankString, suitString   has method for print override"""
@@ -211,20 +215,128 @@ class Hand:
         return pointValue
 
 
+class FullHand:
+    """FullHand class: has properties ...   has methods ... """
+    def __init__(self,card1,card2,card3,card4,card5,card6):
+        
+        self.fullHandCards = []
+
+        self.fullHandCards.append( Card(card1) )
+        self.fullHandCards.append( Card(card2) )
+        self.fullHandCards.append( Card(card3) )
+        self.fullHandCards.append( Card(card4) )
+        self.fullHandCards.append( Card(card5) )
+        self.fullHandCards.append( Card(card6) )
+
+        
+    def simulate(self,my_crib):
+
+        h1 = Hand()
+        x=0
+        for discard1 in self.fullHandCards[x:5]:
+            y=x+1
+            for discard2 in self.fullHandCards[y:]:
+
+                handCards = self.fullHandCards[:]
+                handCards.remove(discard1)
+                handCards.remove(discard2)
+
+                h1.fillHand( handCards[0].strRank + handCards[0].strSuit,handCards[1].strRank + handCards[1].strSuit,handCards[2].strRank + handCards[2].strSuit,handCards[3].strRank + handCards[3].strSuit)
+
+                d1 = Deck()
+                for c in self.fullHandCards:
+                    for d in d1.cards:
+                        if c.suitNum==d.suitNum and c.rankNum==d.rankNum:
+                            d1.cards.remove(d)
+
+                pcount=0
+                psum=0
+                for c in d1.cards:
+                    psum += h1.calcPoints( c.strRank + c.strSuit )
+                    pcount += 1
+
+                
+                print( handCards[0].strRank + handCards[0].strSuit,handCards[1].strRank + handCards[1].strSuit,handCards[2].strRank + handCards[2].strSuit,handCards[3].strRank + handCards[3].strSuit, "results in an average hand points of: ", round(psum / pcount,2) )
+
+                #TODO: simulate crib hand and peg +/-
+            x+=1
+    
+class Deck:
+    """Deck class: has properties ...   has methods ... """
+    def __init__(self):
+        
+        self.cards = []
+
+        suits = ['c','d','h','s']
+        ranks = ['A','2','3','4','5','6','7','8','9','10','J','Q','K']
+
+        for s in suits:
+            for r in ranks:
+                self.cards.append( Card(r+s) )
+       
         
 
         
 if __name__ == '__main__':
-    h1 = Hand()                             #instantiate Hand
-    h1.fillHand('5h','5s','Jh','5d')        #fillHand
-    p0 = h1.calcPoints('5h')                #calcPoints
-    print(p0)
+##    Testing one 4-card hand with a deck card
+##    h1 = Hand()                             #instantiate Hand
+##    h1.fillHand('5h','5s','Jh','5d')        #fillHand
+##    p0 = h1.calcPoints('5h')                #calcPoints
+##    print(p0)
+##    
+##    #chaining example
+##    p1 = h1.fillHand('5h','5s','Jh','5d').calcPoints('Jd')
+##    p2 = h1.fillHand('5h','5s','Jh','5d').calcPoints('Qs')
+##    p3 = h1.fillHand('5h','5s','Jh','5d').calcPoints('5h')
+##    print(p1)
+##    print(p2)
+##    print(p3)
     
-    #chaining example
-    p1 = h1.fillHand('5h','5s','Jh','5d').calcPoints('Jd')
-    p2 = h1.fillHand('5h','5s','Jh','5d').calcPoints('Qs')
-    p3 = h1.fillHand('5h','5s','Jh','5d').calcPoints('5h')
-    print(p1)
-    print(p2)
-    print(p3)
+
+##    Simulating 15 possible discard decisions
     
+##    f1 = FullHand('5s','6d','10d','7s','9c','8h')
+##    f1.simulate(True)
+    
+##>>> import crib
+##>>> f1 = crib.FullHand('5s','6d','10d','7s','9c','8h')
+##>>> f1.simulate(True)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
