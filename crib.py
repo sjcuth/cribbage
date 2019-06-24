@@ -2,6 +2,8 @@
 #x[len(x):] = [5,6,7] to extend arrays
 #x.remove(3) to remove a card
 
+import random
+
 """crib module. Contains classes Card, Hand"""
 class Card:
     """Card class: has properties strRank, strSuit, suitNum, rankNum, value, rankString, suitString   has method for print override"""
@@ -82,7 +84,7 @@ class Card:
         return self.rankString + ' of ' + self.suitString + ' - ' + self.strRank + self.strSuit + " - Suit Num: " + str(self.suitNum) + " Rank Num: " + str(self.rankNum) + " Point Value: " + str(self.value)
     
 class Hand:
-    """Hand class: has properties cards, deckCard, allCards   has methods fillHand(card1,card2,card3,card4), calcPoints(deckCard)"""
+    """Hand class: has properties cards, deckCard, allCards   has methods fillHand(card1,card2,card3,card4), calcPoints(deckCard,is_crib)"""
     def __init__(self):
         self.cards = []
 
@@ -104,7 +106,7 @@ class Hand:
         return self
 
 
-    def calcPoints(self,deckCard):
+    def calcPoints(self,deckCard,is_crib):
         self.deckCard = Card(deckCard)
         self.allCards = []
         for card in self.cards:
@@ -118,11 +120,15 @@ class Hand:
             if card.rankNum==11 and card.suitNum == self.deckCard.suitNum:
                 pointValue += 1
 
-        #calculate flush points
-        if self.allCards[0].suitNum == self.allCards[1].suitNum and self.allCards[1].suitNum == self.allCards[2].suitNum and self.allCards[2].suitNum == self.allCards[3].suitNum:
-            pointValue +=4
-            if self.allCards[0].suitNum == self.allCards[4].suitNum:
-                pointValue +=1
+        #calculate flush points - a crib can only score 5, a hand can score 4 or 5
+        if is_crib:
+            if self.allCards[0].suitNum == self.allCards[1].suitNum and self.allCards[1].suitNum == self.allCards[2].suitNum and self.allCards[2].suitNum == self.allCards[3].suitNum  and self.allCards[3].suitNum == self.allCards[4].suitNum:
+                pointValue +=5
+        else:
+            if self.allCards[0].suitNum == self.allCards[1].suitNum and self.allCards[1].suitNum == self.allCards[2].suitNum and self.allCards[2].suitNum == self.allCards[3].suitNum:
+                pointValue +=4
+                if self.allCards[0].suitNum == self.allCards[4].suitNum:
+                    pointValue +=1            
                 
         #sort list based on rankNum property - deck card no longer matters
         self.allCards.sort( key = lambda x: x.rankNum )
@@ -215,6 +221,12 @@ class Hand:
         return pointValue
 
 
+
+
+
+    
+
+
 class FullHand:
     """FullHand class: has properties ...   has methods ... """
     def __init__(self,card1,card2,card3,card4,card5,card6):
@@ -231,7 +243,9 @@ class FullHand:
         
     def simulate(self,my_crib):
 
+        crib_simulations = 2000
         h1 = Hand()
+        h2 = Hand()
         x=0
         for discard1 in self.fullHandCards[x:5]:
             y=x+1
@@ -244,22 +258,110 @@ class FullHand:
                 h1.fillHand( handCards[0].strRank + handCards[0].strSuit,handCards[1].strRank + handCards[1].strSuit,handCards[2].strRank + handCards[2].strSuit,handCards[3].strRank + handCards[3].strSuit)
 
                 d1 = Deck()
+                d2 = Deck()
                 for c in self.fullHandCards:
                     for d in d1.cards:
                         if c.suitNum==d.suitNum and c.rankNum==d.rankNum:
                             d1.cards.remove(d)
+                            break
 
                 pcount=0
                 psum=0
+                cribcount=0
+                cribsum=0
+                simulation_number = 0
                 for c in d1.cards:
-                    psum += h1.calcPoints( c.strRank + c.strSuit )
+                    psum += h1.calcPoints( c.strRank + c.strSuit, False )
                     pcount += 1
 
-                
-                print( handCards[0].strRank + handCards[0].strSuit,handCards[1].strRank + handCards[1].strSuit,handCards[2].strRank + handCards[2].strSuit,handCards[3].strRank + handCards[3].strSuit, "results in an average hand points of: ", round(psum / pcount,2) )
+                    while simulation_number < crib_simulations:
+                        d2.cards = d1.cards[:]
+                        
+                        random1 = random.randint(0, len(d2.cards)-1 )
+                        c2 = d2.cards[random1]
+                        del d2.cards[random1]
 
-                #TODO: simulate crib hand and peg +/-
+                        random2 = random.randint(0, len(d2.cards)-1 )
+                        c3 = d2.cards[random2]
+                        del d2.cards[random2]
+
+                        h2.fillHand( c2.strRank + c2.strSuit,c3.strRank + c3.strSuit,discard1.strRank + discard1.strSuit,discard2.strRank + discard2.strSuit )
+                        cribsum += h2.calcPoints(c.strRank + c.strSuit, True)
+                        cribcount+=1
+
+                        simulation_number += 1
+
+                avg_hand_points = round(psum / pcount,2)
+
+                if my_crib:
+                    avg_crib_points = round(cribsum / cribcount,2)
+                else:
+                    avg_crib_points = round(cribsum / cribcount,2) * -1
+        
+                
+                print( "throwing away", discard1.strRank + discard1.strSuit, discard2.strRank + discard2.strSuit, "and keeping", handCards[0].strRank + handCards[0].strSuit,handCards[1].strRank + handCards[1].strSuit,handCards[2].strRank + handCards[2].strSuit,handCards[3].strRank + handCards[3].strSuit, "results in an average hand points of: ", avg_hand_points, "and average crib points of:", avg_crib_points, "for a total points of:", round(avg_hand_points + avg_crib_points,2) )
+
+                #TODO: simulate crib hand
+
+                #move this up to the 15x loop above
+                #if my_crib:
+                    #crib_points = 0
+                    #15 possibilities for 2 cards in the crib
+                    #simulate 46x45x44 (90000+) possibiities for the other 3 cards
+                    #or fewer random simulations
+                    #ccount = 0
+                    #csum = 0
+                
+                #else:  #my_crib is false
+                    #crib_points = 0
+
+
+                #TODO: simulate peg +/-
+                    #call the function for pegging with the correct arguments - put random cards in listOppHand - keep track of listPreviousCardsPlayed in class? 
+                    #create Pegging object
+                    #call pegSimulate()
+
+                
             x+=1
+
+
+
+
+
+#class Pegging:
+#    """Pegging class: has properties ...   has methods ... """
+#    def __init__(self):
+
+        #self.listPreviousCardsPlayed = []
+        #self.listMyHand = []
+        #self.listOppHand = []
+        #self.pegCount = 0
+
+    #def pegDecision(self,listMyHand,listOppHand,listPreviousCardsPlayed):
+            #pegCount = 0
+            #for c in previousCardsPlayed:
+                #pegCount+=c.value
+
+            #del infeasible cards from both hands
+
+            #make decision
+            #evaluate decision for 15, pair, run - choose it
+            #otherwise if low keep below 5 or above 15 #if high push as high towards 51
+
+            #add card to listPreviousCardsPlayed
+
+            #return card that is played
+            
+    #def pegSimulate(self,listMyHand,listOppHand,listPreviousCardsPlayed):
+        #myPoints=0
+        #oppPoints=0
+
+        #loop while players have cards
+            #call pegDecision()
+
+        #return myPoints-oppPoints
+
+
     
 class Deck:
     """Deck class: has properties ...   has methods ... """
@@ -279,15 +381,15 @@ class Deck:
         
 if __name__ == '__main__':
 ##    Testing one 4-card hand with a deck card
-##    h1 = Hand()                             #instantiate Hand
-##    h1.fillHand('5h','5s','Jh','5d')        #fillHand
-##    p0 = h1.calcPoints('5h')                #calcPoints
+##    h1 = Hand()                                   #instantiate Hand
+##    h1.fillHand('5h','5s','Jh','5d')              #fillHand
+##    p0 = h1.calcPoints('5h',True)                 #calcPoints
 ##    print(p0)
 ##    
-##    #chaining example
-##    p1 = h1.fillHand('5h','5s','Jh','5d').calcPoints('Jd')
-##    p2 = h1.fillHand('5h','5s','Jh','5d').calcPoints('Qs')
-##    p3 = h1.fillHand('5h','5s','Jh','5d').calcPoints('5h')
+    #chaining example
+##    p1 = h1.fillHand('5h','6h','7h','8h').calcPoints('9s',True)
+##    p2 = h1.fillHand('5h','6h','7h','8h').calcPoints('9s',False)
+##    p3 = h1.fillHand('5h','6h','7h','8s').calcPoints('9h',True)
 ##    print(p1)
 ##    print(p2)
 ##    print(p3)
@@ -295,8 +397,8 @@ if __name__ == '__main__':
 
 ##    Simulating 15 possible discard decisions
     
-##    f1 = FullHand('5s','6d','10d','7s','9c','8h')
-##    f1.simulate(True)
+    f1 = FullHand('10s','9d','8d','7s','6c','5h')
+    f1.simulate(False)
     
 ##>>> import crib
 ##>>> f1 = crib.FullHand('5s','6d','10d','7s','9c','8h')
