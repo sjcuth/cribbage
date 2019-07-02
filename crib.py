@@ -1,6 +1,6 @@
 #add y = x[:] to copy arrays
 #x[len(x):] = [5,6,7] to extend arrays
-#x.remove(3) to remove a card
+#x.remove(c1) to remove a card
 
 import random
 
@@ -328,40 +328,282 @@ class FullHand:
 
 
 
-#class Pegging:
-#    """Pegging class: has properties ...   has methods ... """
-#    def __init__(self):
+class Pegging:
+    """Pegging class: has properties ...   has methods ... """
+    def __init__(self):
+        pass
 
-        #self.listPreviousCardsPlayed = []
-        #self.listMyHand = []
-        #self.listOppHand = []
-        #self.pegCount = 0
+##        self.listPreviousCardsPlayed = []
+##        self.listMyHand = []
+##        self.listOppHand = []
+##        self.pegCount = 0
 
-    #def pegDecision(self,listMyHand,listOppHand,listPreviousCardsPlayed):
-            #pegCount = 0
-            #for c in previousCardsPlayed:
-                #pegCount+=c.value
+##    def pegDecision(self,listMyHand,listOppHand, listPreviousCardsPlayed):
+    def pegDecision(self, listMyHand, listPreviousCardsPlayed):     #consider checking for 31 as the top priority - but be careful to count runs and pairs if a 31 is made
+        
+        pegCount = 0
+        for c in listPreviousCardsPlayed:
+            pegCount+=c.value
 
-            #del infeasible cards from both hands
+        #print('Peg count: ' + str(pegCount))
 
-            #make decision
-            #evaluate decision for 15, pair, run - choose it
-            #otherwise if low keep below 5 or above 15 #if high push as high towards 51
+        pointsPegged = 0
 
-            #add card to listPreviousCardsPlayed
+        #create two infeasibleListHands and remove infeasible cards from both hands - prohibited by >31
+        listMySurvivors = [ c for c in listMyHand if c.value + pegCount <= 31 ]     #comprehension to remove while looping
+        #listOppSurvivors = [ c for c in listOppHand if c.value + pegCount <= 31 ]   #comprehension to remove while looping
+        
+##        print('My surviving cards')
+##        for c in listMySurvivors:
+##            print(c)
+##
+##        print('Opponent surviving cards')
+##        for c in listOppSurvivors:
+##            print(c)
+             
+        if len(listMySurvivors) == 0:
+            chosenCard = None
+        else:
 
-            #return card that is played
+            runDetected = False
+            pairDetected = False
+            fifteenDetected = False
+            thirtyoneDetected = False
+                
+            #check for run
+            if len(listPreviousCardsPlayed) >=2:
+                for r in range( len(listPreviousCardsPlayed)+1, 2, -1 ):
+                    #print(r, "is the run length being tested")
+                    for c in listMySurvivors:
+                        testRun = listPreviousCardsPlayed[-(r-1):]
+                        testRun.append(c)
+                        testRun.sort( key = lambda x: x.rankNum )
+
+##                        print('testRun cards')
+##                        for g in testRun:
+##                            print(g)
+                        
+                        for t in range( r-1 ):
+                            #print("t is now", t)
+                            if testRun[t].rankNum + 1 == testRun[t+1].rankNum:
+                                runDetected = True
+                            else:
+                                runDetected = False
+                                break
+                        if runDetected:
+                            chosenCard = c
+                            #print(chosenCard)
+                            pointsPegged = r
+                            if pegCount + chosenCard.value == 15 or pegCount + chosenCard.value == 31:
+                                pointsPegged += 2
+                            
+                            #print("Points pegged:", pointsPegged)
+                            break
+
+                    if runDetected:
+                        break
+
+##                if runDetected:
+##                    print("A run was found")
+##                else:
+##                    print("No run was found")
+
+            #check for pair
+            if not runDetected and len(listPreviousCardsPlayed) >=1:
+                for c in listMySurvivors:
+                    if c.rankNum == listPreviousCardsPlayed[-1].rankNum:
+                        chosenCard = c
+                        #print(chosenCard)
+                        pointsPegged = 2
+                        if len(listPreviousCardsPlayed) >= 2 and listPreviousCardsPlayed[-1].rankNum == listPreviousCardsPlayed[-2].rankNum:
+                            pointsPegged = 6
+                        if len(listPreviousCardsPlayed) >= 3 and listPreviousCardsPlayed[-1].rankNum == listPreviousCardsPlayed[-2].rankNum and listPreviousCardsPlayed[-2].rankNum == listPreviousCardsPlayed[-3].rankNum:
+                            pointsPegged = 12
+                        #print("Points pegged:", pointsPegged)
+                        if pegCount + chosenCard.value == 15 or pegCount + chosenCard.value == 31:
+                            pointsPegged += 2
+                        pairDetected = True
+                        break
+                    
+##                if pairDetected:
+##                    print("A pair was found")
+##                else:
+##                    print("No pair was found")
+
+            #check for 15
+            if not runDetected and not pairDetected and len(listPreviousCardsPlayed) >=1:
+                for c in listMySurvivors:
+                    if c.value + pegCount == 15:
+                        chosenCard = c
+                        #print(chosenCard)
+                        pointsPegged = 2
+                        #print("Points pegged:", pointsPegged)
+                        fifteenDetected = True
+                        break
+                    
+##                if fifteenDetected:
+##                    print("A 15 was found")
+##                else:
+##                    print("No 15 was found")
+
+            #check for 31
+            if not runDetected and not pairDetected and not fifteenDetected and len(listPreviousCardsPlayed) >= 3:
+                for c in listMySurvivors:
+                    if c.value + pegCount == 31:
+                        chosenCard = c
+                        #print(chosenCard)
+                        pointsPegged = 2
+                        #print("Points pegged:", pointsPegged)
+                        thirtyoneDetected = True
+                        break
+                    
+##                if thirtyoneDetected:
+##                    print("A 31 was found")
+##                else:
+##                    print("No 31 was found")
+
+            #otherwise strategize point ranges knowing that you can't score right now
+            if not runDetected and not pairDetected and not fifteenDetected and not thirtyoneDetected:
+
+                listMySurvivors.sort( key = lambda x: x.rankNum )
+                listMySurvivors.reverse()
+
+##                print('My reverse sorted surviving cards')
+##                for c in listMySurvivors:
+##                    print(c)
+
+                chosenCard = listMySurvivors[0]                       
+
+##                print('Previous Cards Played')
+##                for c in listPreviousCardsPlayed:
+##                    print(c)
+
+
+                if pegCount<=4:    #keep out of 15 range
+
+                    if pegCount == 0:
+
+                        for c in listMySurvivors:
+                            if c.value < 5:
+                                chosenCard = c
+                                break
+                            elif c.value > 5:
+                                chosenCard = c
+
+                        #print('card played is:', chosenCard)
+                        
+                    else:
+
+                        for c in listMySurvivors:
+                            if (c.value + pegCount) != 5 and c.value != 5:
+                                chosenCard = c
+
+                        #print('card played is:', chosenCard)
+
+
+                elif pegCount<=19:  #target a result of 16-20 before the opponent's next card
+
+                    for c in listMySurvivors:
+                        if c.value + pegCount >= 16 and c.value + pegCount <= 20 and c.value != 5:
+                            chosenCard = c
+
+                    #print('card played is:', chosenCard)
+
+                elif pegCount<=30:     #maximize towards 31
+                    #print('card played is:', chosenCard)
+                    pass
+
+
+##        print('Final Chosen Card is:', chosenCard)
+##        print('Final Points Pegged is:', pointsPegged)
+
+        return chosenCard, pointsPegged
+
+
+
+        
+
+
+
+        
             
-    #def pegSimulate(self,listMyHand,listOppHand,listPreviousCardsPlayed):
-        #myPoints=0
-        #oppPoints=0
+    def pegSimulate(self,listMyHand,listOppHand,my_crib):
+        myPoints=0
+        oppPoints=0
+        listPreviousCardsPlayed = []
+        valuePegged = 0
+        myTurn = not my_crib
+        myActive = True
+        oppActive = True
 
-        #loop while players have cards
-            #call pegDecision()
+        #loopNum = 0
 
-        #return myPoints-oppPoints
+        while len(listMyHand)>0 or len(listOppHand)>0:
+            #loopNum += 1
+            #print('Loop number', loopNum, 'has started', 'myTurn is:', myTurn, 'I have cards:', len(listMyHand), 'opp has cards', len(listOppHand) )
+            
+            if myTurn:
+                c1, points = self.pegDecision(listMyHand, listPreviousCardsPlayed)
+                
+                if c1 != None:
+                    myPoints += points
+                    valuePegged += c1.value
+                    listPreviousCardsPlayed.append(c1)
+                    listMyHand.remove(c1)
+
+                    if len(listMyHand) == 0 and  len(listOppHand) == 0 and valuePegged < 31:
+                        myPoints +=1
+
+                    print('card played:', c1, 'points scored', points, 'pegged value', valuePegged)
+                else:
+                    myActive = False
+                    if not oppActive:
+                        if valuePegged < 31:
+                            myPoints += 1
+                        listPreviousCardsPlayed.clear()
+                        valuePegged = 0
+                        myActive = True
+                        oppActive = True
+                    else:               #opponent still active
+                        pass
+                        
+                myTurn = not myTurn
+            else:
+                c1, points = self.pegDecision(listOppHand, listPreviousCardsPlayed)
+                
+                if c1 != None:
+                    oppPoints += points
+                    valuePegged += c1.value
+                    listPreviousCardsPlayed.append(c1)
+                    listOppHand.remove(c1)
+
+                    if len(listMyHand) == 0 and  len(listOppHand) == 0 and valuePegged < 31:
+                        oppPoints +=1
+
+                    print('\t\t\t\t\t\t\tcard played:', c1, 'points scored', points, 'pegged value', valuePegged)
+                else:
+                    oppActive = False
+                    if not myActive:
+                        if valuePegged < 31:
+                            oppPoints += 1
+                        listPreviousCardsPlayed.clear()
+                        valuePegged = 0
+                        myActive = True
+                        oppActive = True
+                    else:               #I'm still active
+                        pass
+                        
+                myTurn = not myTurn
+                
+            #print('Loop number', loopNum, 'has ended')
+            
+        print('my points:', myPoints)
+        print('opp points', oppPoints)
+        print('net points', myPoints-oppPoints)
+        return myPoints-oppPoints
 
 
+    
     
 class Deck:
     """Deck class: has properties ...   has methods ... """
@@ -380,6 +622,7 @@ class Deck:
 
         
 if __name__ == '__main__':
+    pass
 ##    Testing one 4-card hand with a deck card
 ##    h1 = Hand()                                   #instantiate Hand
 ##    h1.fillHand('5h','5s','Jh','5d')              #fillHand
@@ -397,17 +640,19 @@ if __name__ == '__main__':
 
 ##    Simulating 15 possible discard decisions
     
-    f1 = FullHand('10s','9d','8d','7s','6c','5h')
-    f1.simulate(False)
+##    f1 = FullHand('10s','9d','8d','7s','6c','5h')
+##    f1.simulate(False)
     
 ##>>> import crib
 ##>>> f1 = crib.FullHand('5s','6d','10d','7s','9c','8h')
 ##>>> f1.simulate(True)
 
 
-
-
-
+##    p1 = Pegging()
+##    c1, points = p1.pegDecision( [Card('8c'),Card('5s'),Card('Qs')], [Card('7s'),Card('2d'),Card('Qh'),Card('Kc')] )
+##    print(c1)
+##    print(points)
+##    p1.pegSimulate( [Card('Qc'),Card('10c'),Card('9s'),Card('Qs')] , [Card('Ks'),Card('Qd'),Card('10h'),Card('Jc')] , True)
 
 
 
