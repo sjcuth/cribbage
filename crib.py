@@ -1,14 +1,11 @@
-#add y = x[:] to copy arrays
-#x[len(x):] = [5,6,7] to extend arrays
-#x.remove(c1) to remove a card
-
 import random
 
-"""crib module. Contains classes Card, Hand"""
+"""crib module. Contains classes Card, Hand, FullHand, Pegging, Deck"""
+
 class Card:
-    """Card class: has properties strRank, strSuit, suitNum, rankNum, value, rankString, suitString   has method for print override"""
+    """Card class: has properties strRank, strSuit, suitNum, rankNum, value, rankString, suitString - has method for print override"""
     def __init__(self,strDef):
-        
+        """__init__(strDef): create a Card object with many properties based on an input strDef such as 'Ks' for King of Spades or 10h for 10 of Hearts"""
         self.strRank = strDef[0:-1]
         self.strSuit = strDef[-1]        
 
@@ -81,16 +78,18 @@ class Card:
         self.suitString = ss
         
     def __str__(self):
+        """__str__(): override the print method for a Card """
         return self.rankString + ' of ' + self.suitString + ' - ' + self.strRank + self.strSuit + " - Suit Num: " + str(self.suitNum) + " Rank Num: " + str(self.rankNum) + " Point Value: " + str(self.value)
     
 class Hand:
-    """Hand class: has properties cards, deckCard, allCards   has methods fillHand(card1,card2,card3,card4), calcPoints(deckCard,is_crib)"""
+    """Hand class: has properties cards - has methods fillHand(card1,card2,card3,card4), calcPoints(deckCard,is_crib)"""
     def __init__(self):
+        """__init__(): the Hand object will hold 4 card objects in this list """
         self.cards = []
 
             
     def fillHand(self,card1,card2,card3,card4):
-
+        """fillHand(card1,card2,card3,card4): 4 card objects are placed in the cards list """
         del self.cards[0:]
        
         c1 = Card(card1)
@@ -107,6 +106,7 @@ class Hand:
 
 
     def calcPoints(self,deckCard,is_crib):
+        """calcPoints(deckCard,is_crib): using the Hand cards list, this method will use a deckCard Card object and an is_crib boolean to calculate the points in a 5-card hand """
         self.deckCard = Card(deckCard)
         self.allCards = []
         for card in self.cards:
@@ -221,16 +221,10 @@ class Hand:
         return pointValue
 
 
-
-
-
-    
-
-
 class FullHand:
-    """FullHand class: has properties ...   has methods ... """
+    """FullHand class: has properties fullHandCards - has methods simulate(my_crib) """
     def __init__(self,card1,card2,card3,card4,card5,card6):
-        
+        """__init__(card1,card2,card3,card4,card5,card6): create a FullHand object consisting of 6 cards that have been dealt """
         self.fullHandCards = []
 
         self.fullHandCards.append( Card(card1) )
@@ -242,10 +236,13 @@ class FullHand:
 
         
     def simulate(self,my_crib):
-
+        """simulate(my_crib): input the my_crib boolean to simulate the decision that must be made on which 2 cards to discard into the crib """
         crib_simulations = 2000
+        pegging_simulations = 2000
+        max_points = 0
         h1 = Hand()
         h2 = Hand()
+                
         x=0
         for discard1 in self.fullHandCards[x:5]:
             y=x+1
@@ -254,6 +251,11 @@ class FullHand:
                 handCards = self.fullHandCards[:]
                 handCards.remove(discard1)
                 handCards.remove(discard2)
+
+                my_c1 = Card(handCards[0].strRank + handCards[0].strSuit)
+                my_c2 = Card(handCards[1].strRank + handCards[1].strSuit)
+                my_c3 = Card(handCards[2].strRank + handCards[2].strSuit)
+                my_c4 = Card(handCards[3].strRank + handCards[3].strSuit)
 
                 h1.fillHand( handCards[0].strRank + handCards[0].strSuit,handCards[1].strRank + handCards[1].strSuit,handCards[2].strRank + handCards[2].strSuit,handCards[3].strRank + handCards[3].strSuit)
 
@@ -269,27 +271,64 @@ class FullHand:
                 psum=0
                 cribcount=0
                 cribsum=0
+                pegcount = 0
+                pegsum = 0
+                
                 simulation_number = 0
+                peg_simulation_number = 0
+                
                 for c in d1.cards:
                     psum += h1.calcPoints( c.strRank + c.strSuit, False )
                     pcount += 1
 
-                    while simulation_number < crib_simulations:
-                        d2.cards = d1.cards[:]
-                        
-                        random1 = random.randint(0, len(d2.cards)-1 )
-                        c2 = d2.cards[random1]
-                        del d2.cards[random1]
+                while simulation_number < crib_simulations:
+                    d2.cards = d1.cards[:]
+                    
+                    random1 = random.randint(0, len(d2.cards)-1 )
+                    c2 = d2.cards[random1]
+                    del d2.cards[random1]
 
-                        random2 = random.randint(0, len(d2.cards)-1 )
-                        c3 = d2.cards[random2]
-                        del d2.cards[random2]
+                    random2 = random.randint(0, len(d2.cards)-1 )
+                    c3 = d2.cards[random2]
+                    del d2.cards[random2]
 
-                        h2.fillHand( c2.strRank + c2.strSuit,c3.strRank + c3.strSuit,discard1.strRank + discard1.strSuit,discard2.strRank + discard2.strSuit )
-                        cribsum += h2.calcPoints(c.strRank + c.strSuit, True)
-                        cribcount+=1
+                    h2.fillHand( c2.strRank + c2.strSuit,c3.strRank + c3.strSuit,discard1.strRank + discard1.strSuit,discard2.strRank + discard2.strSuit )
+                    cribsum += h2.calcPoints(c.strRank + c.strSuit, True)
+                    cribcount+=1
 
-                        simulation_number += 1
+                    simulation_number += 1
+
+                while peg_simulation_number < pegging_simulations:
+                    d2.cards = d1.cards[:]
+
+                    #print("d2 card count:", len(d2.cards))
+                    
+                    random1 = random.randint(0, len(d2.cards)-1 )
+                    c2 = d2.cards[random1]
+                    del d2.cards[random1]
+
+                    random2 = random.randint(0, len(d2.cards)-1 )
+                    c3 = d2.cards[random2]
+                    del d2.cards[random2]
+
+                    random3 = random.randint(0, len(d2.cards)-1 )
+                    c4 = d2.cards[random3]
+                    del d2.cards[random3]
+
+                    random4 = random.randint(0, len(d2.cards)-1 )
+                    c5 = d2.cards[random4]
+                    del d2.cards[random4]
+
+##                    print(c2)
+##                    print(c3)
+##                    print(c4)
+##                    print(c5)
+
+                    p1 = Pegging()
+                    pegsum += p1.pegSimulate( [my_c1,my_c2,my_c3,my_c4] , [c2,c3,c4,c5] , my_crib)
+                    pegcount += 1
+
+                    peg_simulation_number += 1                    
 
                 avg_hand_points = round(psum / pcount,2)
 
@@ -297,40 +336,29 @@ class FullHand:
                     avg_crib_points = round(cribsum / cribcount,2)
                 else:
                     avg_crib_points = round(cribsum / cribcount,2) * -1
+
+                avg_peg_points = round(pegsum / pegcount,2)
         
                 
-                print( "throwing away", discard1.strRank + discard1.strSuit, discard2.strRank + discard2.strSuit, "and keeping", handCards[0].strRank + handCards[0].strSuit,handCards[1].strRank + handCards[1].strSuit,handCards[2].strRank + handCards[2].strSuit,handCards[3].strRank + handCards[3].strSuit, "results in an average hand points of: ", avg_hand_points, "and average crib points of:", avg_crib_points, "for a total points of:", round(avg_hand_points + avg_crib_points,2) )
+                print( "throwing away", discard1.strRank + discard1.strSuit, discard2.strRank + discard2.strSuit, "and keeping", handCards[0].strRank + handCards[0].strSuit,handCards[1].strRank + handCards[1].strSuit,handCards[2].strRank + handCards[2].strSuit,handCards[3].strRank + handCards[3].strSuit, "results in an average hand points of:", avg_hand_points, "and average crib points of:", avg_crib_points, "and net pegging points:" , avg_peg_points, "and total points of:", round(avg_hand_points + avg_crib_points + avg_peg_points,2) )
 
-                #TODO: simulate crib hand
+                total_points = avg_hand_points + avg_crib_points + avg_peg_points
 
-                #move this up to the 15x loop above
-                #if my_crib:
-                    #crib_points = 0
-                    #15 possibilities for 2 cards in the crib
-                    #simulate 46x45x44 (90000+) possibiities for the other 3 cards
-                    #or fewer random simulations
-                    #ccount = 0
-                    #csum = 0
-                
-                #else:  #my_crib is false
-                    #crib_points = 0
-
-
-                #TODO: simulate peg +/-
-                    #call the function for pegging with the correct arguments - put random cards in listOppHand - keep track of listPreviousCardsPlayed in class? 
-                    #create Pegging object
-                    #call pegSimulate()
-
+                if total_points > max_points:
+                    max_points = total_points
+                    throwCard1 = discard1
+                    throwCard2 = discard2
                 
             x+=1
 
-
+        return throwCard1, throwCard2
 
 
 
 class Pegging:
-    """Pegging class: has properties ...   has methods ... """
+    """Pegging class: has properties None - has methods pegDecision(listMyHand, listPreviousCardsPlayed), pegSimulate(listMyHand,listOppHand,my_crib) """
     def __init__(self):
+        """there are no class properties to initialize """
         pass
 
 ##        self.listPreviousCardsPlayed = []
@@ -340,7 +368,7 @@ class Pegging:
 
 ##    def pegDecision(self,listMyHand,listOppHand, listPreviousCardsPlayed):
     def pegDecision(self, listMyHand, listPreviousCardsPlayed):     #consider checking for 31 as the top priority - but be careful to count runs and pairs if a 31 is made
-        
+        """pegDecision(listMyHand, listPreviousCardsPlayed): based on a list of cards in my hand during pegging and a list of cards currently played during pegging, make a decision about which card to play and returns it along with how many points were pegged """
         pegCount = 0
         for c in listPreviousCardsPlayed:
             pegCount+=c.value
@@ -528,6 +556,7 @@ class Pegging:
         
             
     def pegSimulate(self,listMyHand,listOppHand,my_crib):
+        """pegSimulate(listMyHand,listOppHand,my_crib): simulate a pegging session using the cards in my hand, the cards in the opponent's hand and my_crib to determine who goes first """
         myPoints=0
         oppPoints=0
         listPreviousCardsPlayed = []
@@ -554,7 +583,7 @@ class Pegging:
                     if len(listMyHand) == 0 and  len(listOppHand) == 0 and valuePegged < 31:
                         myPoints +=1
 
-                    print('card played:', c1, 'points scored', points, 'pegged value', valuePegged)
+                    #print('card played:', c1, 'points scored', points, 'pegged value', valuePegged)
                 else:
                     myActive = False
                     if not oppActive:
@@ -580,7 +609,7 @@ class Pegging:
                     if len(listMyHand) == 0 and  len(listOppHand) == 0 and valuePegged < 31:
                         oppPoints +=1
 
-                    print('\t\t\t\t\t\t\tcard played:', c1, 'points scored', points, 'pegged value', valuePegged)
+                    #print('\t\t\t\t\t\t\tcard played:', c1, 'points scored', points, 'pegged value', valuePegged)
                 else:
                     oppActive = False
                     if not myActive:
@@ -597,9 +626,9 @@ class Pegging:
                 
             #print('Loop number', loopNum, 'has ended')
             
-        print('my points:', myPoints)
-        print('opp points', oppPoints)
-        print('net points', myPoints-oppPoints)
+##        print('my points:', myPoints)
+##        print('opp points', oppPoints)
+##        print('net points', myPoints-oppPoints)
         return myPoints-oppPoints
 
 
@@ -608,7 +637,7 @@ class Pegging:
 class Deck:
     """Deck class: has properties ...   has methods ... """
     def __init__(self):
-        
+        """__init__(): initialize a deck of cards, all 52 cards in a list called cards """
         self.cards = []
 
         suits = ['c','d','h','s']
@@ -628,8 +657,9 @@ if __name__ == '__main__':
 ##    h1.fillHand('5h','5s','Jh','5d')              #fillHand
 ##    p0 = h1.calcPoints('5h',True)                 #calcPoints
 ##    print(p0)
-##    
-    #chaining example
+
+
+##    chaining example
 ##    p1 = h1.fillHand('5h','6h','7h','8h').calcPoints('9s',True)
 ##    p2 = h1.fillHand('5h','6h','7h','8h').calcPoints('9s',False)
 ##    p3 = h1.fillHand('5h','6h','7h','8s').calcPoints('9h',True)
@@ -639,51 +669,24 @@ if __name__ == '__main__':
     
 
 ##    Simulating 15 possible discard decisions
-    
-##    f1 = FullHand('10s','9d','8d','7s','6c','5h')
-##    f1.simulate(False)
-    
-##>>> import crib
-##>>> f1 = crib.FullHand('5s','6d','10d','7s','9c','8h')
-##>>> f1.simulate(True)
-
-
-##    p1 = Pegging()
-##    c1, points = p1.pegDecision( [Card('8c'),Card('5s'),Card('Qs')], [Card('7s'),Card('2d'),Card('Qh'),Card('Kc')] )
-##    print(c1)
-##    print(points)
-##    p1.pegSimulate( [Card('Qc'),Card('10c'),Card('9s'),Card('Qs')] , [Card('Ks'),Card('Qd'),Card('10h'),Card('Jc')] , True)
+##    f1 = FullHand('9c','6c','Kd','5h','2d','3c')
+##    f1.simulate(my_crib=False)
 
 
 
+##how to use this module for a cribbage game
 
+##how to decide which 2 cards to throw away
+#import crib
+#f1 = crib.FullHand('9c','6c','4d','5h','7d','8c')      #create a FullHand object with 6 cards dealt 
+#discard1, discard2 = f1.simulate(True)                 #figure out which 2 cards to discard to maximize points
+#print(discard1)                                        #optionally print the first card to discard
+#print(discard2)                                        #optionally print the second card to discard
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+##how to decide which card to play during pegging
+#import crib
+#p1 = crib.Pegging()                                                                                                                            #create a Pegging object and assign to p1 
+#cardToPlay, pointsPegged = p1.pegDecision( [crib.Card('Kc'),crib.Card('As'),crib.Card('10c')], [crib.Card('3s'),crib.Card('Ah')] )             #input cards in hand as first list, cards played thus far in order in the second list - assign card to play and points pegged to variables
+#print(cardToPlay)                                                                                                                              #optionally print the card to play next in pegging
+#print(pointsPegged)                                                                                                                            #optionally show how many points this would score
 
