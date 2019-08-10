@@ -114,7 +114,13 @@ class Hand:
         self.allCards.append(self.deckCard)
 
         pointValue = 0
+##        print(self.cards[0])
+##        print(self.cards[1])
+##        print(self.cards[2])
+##        print(self.cards[3])
+##        print(deckCard)
 
+        
         #check for nob
         for card in self.cards:
             if card.rankNum==11 and card.suitNum == self.deckCard.suitNum:
@@ -292,8 +298,13 @@ class FullHand:
                     c3 = d2.cards[random2]
                     del d2.cards[random2]
 
+                    random3 = random.randint(0, len(d2.cards)-1 )
+                    c4 = d2.cards[random3]
+                    del d2.cards[random3]
+                    
+
                     h2.fillHand( c2.strRank + c2.strSuit,c3.strRank + c3.strSuit,discard1.strRank + discard1.strSuit,discard2.strRank + discard2.strSuit )
-                    cribsum += h2.calcPoints(c.strRank + c.strSuit, True)
+                    cribsum += h2.calcPoints(c4.strRank + c4.strSuit, True)
                     cribcount+=1
 
                     simulation_number += 1
@@ -340,7 +351,7 @@ class FullHand:
                 avg_peg_points = round(pegsum / pegcount,2)
         
                 
-                print( "throwing away", discard1.strRank + discard1.strSuit, discard2.strRank + discard2.strSuit, "and keeping", handCards[0].strRank + handCards[0].strSuit,handCards[1].strRank + handCards[1].strSuit,handCards[2].strRank + handCards[2].strSuit,handCards[3].strRank + handCards[3].strSuit, "results in an average hand points of:", avg_hand_points, "and average crib points of:", avg_crib_points, "and net pegging points:" , avg_peg_points, "and total points of:", round(avg_hand_points + avg_crib_points + avg_peg_points,2) )
+                print( "throwing", discard1.strRank + discard1.strSuit, discard2.strRank + discard2.strSuit, "+ keeping", handCards[0].strRank + handCards[0].strSuit,handCards[1].strRank + handCards[1].strSuit,handCards[2].strRank + handCards[2].strSuit,handCards[3].strRank + handCards[3].strSuit, "=avg hand points:", avg_hand_points, "+ average crib points of:", avg_crib_points, "+ net pegging points:" , avg_peg_points, "+ total points of:", round(avg_hand_points + avg_crib_points + avg_peg_points,2) )
 
                 total_points = avg_hand_points + avg_crib_points + avg_peg_points
 
@@ -669,8 +680,8 @@ if __name__ == '__main__':
     
 
 ##    Simulating 15 possible discard decisions
-##    f1 = FullHand('9c','6c','Kd','5h','2d','3c')
-##    f1.simulate(my_crib=False)
+    f1 = FullHand('10h','10c','10s','Kh','Ks','Kc')
+    f1.simulate(my_crib=False)
 
 
 
